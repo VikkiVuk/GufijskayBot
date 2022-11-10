@@ -21,7 +21,7 @@ module.exports = {
         .addStringOption(option => option.setName('description').setDescription('The description of the word').setRequired(false)),
     execute(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield interaction.deferReply({ ephemeral: true });
+            yield interaction.deferReply();
             // check if the user is VikkiVuk#0001 or X Master Woo#5269
             if (interaction.user.id !== "750725036096094208" && interaction.user.id !== "429331889619337218") {
                 yield interaction.editReply({ content: "You do not have permission to use this command." });

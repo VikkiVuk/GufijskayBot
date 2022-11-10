@@ -1,6 +1,8 @@
 import { REST, Routes } from "discord.js"
 import * as fs from "fs"
 import * as path from "path"
+import * as DotEnv from "dotenv"
+DotEnv.config({ path: "./.env" })
 
 const commands = [];
 const commandFiles = fs.readdirSync(path.join(__dirname, "commands")).filter(file => file.endsWith('.js') || file.endsWith('.ts'));
@@ -9,7 +11,8 @@ for (const file of commandFiles) {
     commands.push(command.data.toJSON());
 }
 
-const rest = new REST({ version: '10' }).setToken("MTAzNzA2MjAwODY5ODMyNzA3MA.GNDnO7.3sNejSMJosF37aU0K7ZNriXfYpftU0CJ3Z_VJY");
+// @ts-ignore
+const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 (async () => {
     try {

@@ -9,21 +9,119 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const builders_1 = require("@discordjs/builders");
+const discord_js_1 = require("discord.js");
+// @ts-ignore
+const google_spreadsheet_1 = require("google-spreadsheet");
+function translate(word, language) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const doc = new google_spreadsheet_1.GoogleSpreadsheet(process.env.CAVEMEN_WORDS_SID);
+        yield doc.useServiceAccountAuth({
+            client_email: process.env.CLIENT_EMAIL,
+            private_key: process.env.PRIVATE_KEY,
+        });
+        yield doc.loadInfo();
+        const sheet = doc.sheetsByTitle['Cave man Gufijskay'];
+        const rows = yield sheet.getRows();
+        let found = false;
+        let translatedWord = "";
+        yield rows.forEach((row) => {
+            // @ts-ignore
+            let data = row["_rawData"];
+            let searchableData = [data[0], data[1]];
+            word = word.replace("ing", "").replace("ed", "");
+            // @ts-ignore
+            if (searchableData[0].toString().toLowerCase() === word.toLowerCase() || searchableData[1].toString().toLowerCase() === word.toLowerCase()) {
+                found = true;
+                translatedWord = searchableData[(language === "en") ? 1 : 0];
+            }
+        });
+        let toReturn = [translatedWord, found];
+        if (found === false) {
+            toReturn[0] = word;
+        }
+        return toReturn;
+    });
+}
 module.exports = {
     data: new builders_1.SlashCommandBuilder()
         .setName('translate')
         .setDescription('Translate from english to gufijskay jøzik or vice versa')
-        .addSubcommand(subcommand => subcommand.setName('english').setDescription('Translate from gufijskay jøzik to english').addStringOption(option => option.setName('text').setDescription('The text to translate').setRequired(true)))
-        .addSubcommand(subcommand => subcommand.setName('gufijskay').setDescription('Translate from english to gufijskay jøzik').addStringOption(option => option.setName('text').setDescription('The text to translate').setRequired(true))),
+        .addSubcommand(subcommand => subcommand.setName('gufijskay').setDescription('Translate from gufijskay jøzik to english').addStringOption(option => option.setName('text').setDescription('The text to translate').setRequired(true)))
+        .addSubcommand(subcommand => subcommand.setName('english').setDescription('Translate from english to gufijskay jøzik').addStringOption(option => option.setName('text').setDescription('The text to translate').setRequired(true))),
     execute(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
+            yield interaction.deferReply();
             // @ts-ignore
             const subcommand = interaction.options.getSubcommand();
             // @ts-ignore
-            const text = interaction.options.getString('text');
-            const language = subcommand === 'english' ? 'en' : 'gufijskay';
-            //await interaction.reply('The language is ' + language + ' and the text is ' + text);
-            yield interaction.reply({ content: `${(language === 'en') ? "This command is under construction" : "Ovø šutfaken jest podis aflkonstrukt"}`, ephemeral: true });
+            let text = interaction.options.getString('text');
+            const language = subcommand === 'english' ? 'gufijskay' : 'en';
+            let gufijskayPronouns = ["ja jestem", "ty jesteš", "on jest", "ona jest", "ono jest", "my jestemo", "ony jestu"];
+            let englishPronouns = ["i am", "you are", "he is", "she is", "it is", "we are", "they are"];
+            // check to see if there's a period or any other sign of punctuation at the end of the word
+            let punctuation = text.slice(-1);
+            let punctuationFound = false;
+            if (punctuation === "." || punctuation === "?" || punctuation === "!") {
+                punctuationFound = true;
+                text = text.slice(0, -1);
+            }
+            if (language == "gufijskay") {
+                englishPronouns.forEach((pronoun, index) => {
+                    if (text.toLowerCase().includes(pronoun)) {
+                        text = text.toLowerCase().replace(pronoun, gufijskayPronouns[index].replace(" ", "*"));
+                    }
+                });
+            }
+            else {
+                gufijskayPronouns.forEach((pronoun, index) => {
+                    if (text.toLowerCase().includes(pronoun)) {
+                        text = text.toLowerCase().replace(pronoun, englishPronouns[index].replace(" ", "*"));
+                    }
+                });
+            }
+            const words = text.split(" ");
+            const translatedWords = [];
+            // translate each word
+            for (let i = 0; i < words.length; i++) {
+                const word = words[i];
+                if (word == "a" || word == "an") {
+                    continue;
+                }
+                if (word.includes("*")) {
+                    translatedWords.push([word, true]);
+                    continue;
+                }
+                if (word.includes("-")) {
+                    yield translate(word.replace("-", " "), language).then((translatedWord) => {
+                        translatedWords.push(translatedWord);
+                    });
+                    continue;
+                }
+                const translatedWord = yield translate(word, language);
+                translatedWords.push(translatedWord);
+            }
+            // make a sentance that is the translated words seperated by spaces and add a period at the end if there isn't one already also make the first letter uppercase abd the rest lowercase
+            let translatedText = translatedWords.map(word => word[0]).join(' ').replace("*", " ").replace("  ", " ");
+            if (punctuationFound) {
+                translatedText += punctuation;
+            }
+            translatedText = translatedText.charAt(0).toUpperCase() + translatedText.slice(1).toLowerCase();
+            // check if any of the words were not found
+            let embeds = [];
+            const notFound = translatedWords.filter(word => word[1] == false);
+            if (notFound.length > 0) {
+                embeds.push(new discord_js_1.EmbedBuilder()
+                    .setTitle('Some words were not found')
+                    .setColor(0xFF0000)
+                    .setDescription('The following words were not found in the dictionary: ' + notFound.map(word => word[0]).join(', ')));
+            }
+            // create the embed
+            embeds.push(new discord_js_1.EmbedBuilder()
+                .setTitle(`Translation from ${language === 'en' ? 'gufijskay jøzik' : 'english'}`)
+                .setDescription(translatedText)
+                .setColor(0x00AE86)
+                .setFooter({ text: `Translated by ${interaction.user.username}` }));
+            yield interaction.editReply({ embeds: embeds });
         });
     },
 };

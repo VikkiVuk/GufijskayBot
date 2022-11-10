@@ -11,7 +11,7 @@ export = {
         .addStringOption(option => option.setName('word').setDescription('The word in Gufijskay Jøzik to delete').setRequired(true)),
 
     async execute(interaction: CommandInteraction) {
-        await interaction.deferReply({ ephemeral: true});
+        await interaction.deferReply();
 
         // check if the user is VikkiVuk#0001 or X Master Woo#5269
         if (interaction.user.id !== "750725036096094208" && interaction.user.id !== "429331889619337218") {
