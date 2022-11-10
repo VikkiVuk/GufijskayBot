@@ -35,13 +35,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
+const DotEnv = __importStar(require("dotenv"));
+DotEnv.config({ path: "./.env" });
 const commands = [];
 const commandFiles = fs.readdirSync(path.join(__dirname, "commands")).filter(file => file.endsWith('.js') || file.endsWith('.ts'));
 for (const file of commandFiles) {
     const command = require(path.join(__dirname, "commands", file));
     commands.push(command.data.toJSON());
 }
-const rest = new discord_js_1.REST({ version: '10' }).setToken("MTAzNzA2MjAwODY5ODMyNzA3MA.GNDnO7.3sNejSMJosF37aU0K7ZNriXfYpftU0CJ3Z_VJY");
+// @ts-ignore
+const rest = new discord_js_1.REST({ version: '10' }).setToken(process.env.TOKEN);
 (() => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log(`Started refreshing ${commands.length} application (/) commands.`);
