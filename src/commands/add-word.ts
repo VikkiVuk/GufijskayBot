@@ -17,7 +17,7 @@ import { GoogleSpreadsheet, GoogleSpreadsheetRow } from "google-spreadsheet";
 export = {
     data: new SlashCommandBuilder()
         .setName('add-word')
-        .setDescription('Add a word to gufijskay jøzik'),
+        .setDescription('Add a word to Gufijskay Jøzik'),
         // .addStringOption(option => option.setName('gufijskay').setDescription('The word to add in gufijskay').setRequired(true))
         // .addStringOption(option => option.setName('english').setDescription('The word to add in english').setRequired(true))
         // .addStringOption(option => option.setName('description').setDescription('The description of the word').setRequired(false)),
@@ -25,7 +25,7 @@ export = {
     async execute(interaction: CommandInteraction) {
         // reply with a modal
         const modal = new ModalBuilder()
-            .setTitle('Add a word to gufijskay jøzik')
+            .setTitle('Add a word to Gufijskay Jøzik')
             .setCustomId('word-add')
 
         const input1 = new TextInputBuilder()
@@ -59,7 +59,7 @@ export = {
         // filter for the modal interaction
         const filter = (i: ModalSubmitInteraction) => i.customId === 'word-add' && i.user.id === interaction.user.id
 
-        await interaction.awaitModalSubmit({filter: filter, time: 30000}).then(async (modalInteraction: ModalSubmitInteraction) => {
+        await interaction.awaitModalSubmit({filter: filter, time: 60000}).then(async (modalInteraction: ModalSubmitInteraction) => {
             await modalInteraction.deferReply();
 
             // check if the user is VikkiVuk#0001 or X Master Woo#5269
