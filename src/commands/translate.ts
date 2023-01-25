@@ -3,27 +3,17 @@ import {CommandInteraction, Embed, EmbedBuilder} from "discord.js";
 // @ts-ignore
 import {GoogleSpreadsheet} from "google-spreadsheet";
 
-async function translate(word : string, language: string) {
-    const doc = new GoogleSpreadsheet(process.env.CAVEMEN_WORDS_SID);
-    await doc.useServiceAccountAuth({
-        client_email: process.env.CLIENT_EMAIL,
-        private_key: process.env.PRIVATE_KEY,
-    });
-
-    await doc.loadInfo();
-    const sheet = doc.sheetsByTitle['Cave man Gufijskay'];
-    const rows = await sheet.getRows();
-
+async function translate(words: any, word : string, language: string) {
     let found = false;
     let translatedWord = "";
-    await rows.forEach((row: string) => {
+    await words.forEach((row: string) => {
         // @ts-ignore
         let data = row["_rawData"]
         let searchableData = [ data[0], data[1] ];
         word = word.replace("ing", "").replace("ed", "")
 
         // @ts-ignore
-        if (searchableData[0].toString().toLowerCase() === word.toLowerCase() || searchableData[1].toString().toLowerCase() === word.toLowerCase()) {
+        if (searchableData[0].toLowerCase() === word.toLowerCase() || searchableData[1].toLowerCase() === word.toLowerCase()) {
             found = true
             translatedWord = searchableData[(language === "en") ? 1 : 0]
         }
@@ -31,7 +21,7 @@ async function translate(word : string, language: string) {
 
     let toReturn = [translatedWord, found]
 
-    if (found === false) {
+    if (!found) {
         toReturn[0] = word
     }
 
@@ -46,6 +36,15 @@ export = {
 
     async execute(interaction: CommandInteraction) {
         await interaction.deferReply()
+        const doc = new GoogleSpreadsheet(process.env.CAVEMEN_WORDS_SID);
+        await doc.useServiceAccountAuth({
+            client_email: process.env.CLIENT_EMAIL,
+            private_key: process.env.PRIVATE_KEY,
+        });
+
+        await doc.loadInfo();
+        const sheet = doc.sheetsByTitle['Dictionary'];
+        const rows = await sheet.getRows();
         // @ts-ignore
         const subcommand = interaction.options.getSubcommand();
         // @ts-ignore
@@ -53,7 +52,7 @@ export = {
         const language = subcommand === 'english' ? 'gufijskay' : 'en';
         let gufijskayPronouns = ["ja jestem", "ty jesteš", "on jest", "ona jest", "ono jest", "my jestemo", "ony jestu"];
         let englishPronouns = ["i am", "you are", "he is", "she is", "it is", "we are", "they are"];
-        // check to see if there's a period or any other sign of punctuation at the end of the word
+
         let punctuation = text.slice(-1);
         let punctuationFound = false;
         if (punctuation === "." || punctuation === "?" || punctuation === "!") {
@@ -90,13 +89,13 @@ export = {
             }
 
             if (word.includes("-")) {
-                await translate(word.replace("-", " "), language).then((translatedWord) => {
+                await translate(rows, word.replace("-", " "), language).then((translatedWord) => {
                     translatedWords.push(translatedWord);
                 })
                 continue;
             }
 
-            const translatedWord = await translate(word, language);
+            const translatedWord = await translate(rows, word, language);
             translatedWords.push(translatedWord);
         }
 

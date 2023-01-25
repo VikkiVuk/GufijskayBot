@@ -62,7 +62,6 @@ export = {
         await interaction.awaitModalSubmit({filter: filter, time: 60000}).then(async (modalInteraction: ModalSubmitInteraction) => {
             await modalInteraction.deferReply();
 
-            // check if the user is VikkiVuk#0001 or X Master Woo#5269
             if (modalInteraction.user.id !== "750725036096094208" && modalInteraction.user.id !== "429331889619337218") {
                 await modalInteraction.editReply({ content: "You do not have permission to use this command." });
                 return;
@@ -75,7 +74,7 @@ export = {
             });
 
             await doc.loadInfo();
-            const sheet = doc.sheetsByTitle["Cave man Gufijskay"];
+            const sheet = doc.sheetsByTitle["Dictionary"];
             const rows = await sheet.getRows();
 
             // get the values from the modal

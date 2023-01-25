@@ -26,7 +26,7 @@ export = {
             private_key: process.env.PRIVATE_KEY,
         });
         await doc.loadInfo();
-        const sheet = doc.sheetsByTitle["Cave man Gufijskay"];
+        const sheet = doc.sheetsByTitle["Dictionary"];
         const rows = await sheet.getRows();
         let results: any[] = [];
         await rows.forEach((row: string) => {

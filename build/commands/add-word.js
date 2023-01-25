@@ -51,7 +51,6 @@ module.exports = {
             const filter = (i) => i.customId === 'word-add' && i.user.id === interaction.user.id;
             yield interaction.awaitModalSubmit({ filter: filter, time: 60000 }).then((modalInteraction) => __awaiter(this, void 0, void 0, function* () {
                 yield modalInteraction.deferReply();
-                // check if the user is VikkiVuk#0001 or X Master Woo#5269
                 if (modalInteraction.user.id !== "750725036096094208" && modalInteraction.user.id !== "429331889619337218") {
                     yield modalInteraction.editReply({ content: "You do not have permission to use this command." });
                     return;
@@ -62,7 +61,7 @@ module.exports = {
                     private_key: process.env.PRIVATE_KEY,
                 });
                 yield doc.loadInfo();
-                const sheet = doc.sheetsByTitle["Cave man Gufijskay"];
+                const sheet = doc.sheetsByTitle["Dictionary"];
                 const rows = yield sheet.getRows();
                 // get the values from the modal
                 const gufijskay = modalInteraction.fields.getTextInputValue('gufijskay');

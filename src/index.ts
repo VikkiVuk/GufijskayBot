@@ -52,11 +52,17 @@ client.on("interactionCreate", async interaction => {
                 // listen to the button click
                 const filter = (buttonInteraction : ButtonInteraction) => buttonInteraction.customId === "report_error" && buttonInteraction.user.id === interaction.user.id;
                 // @ts-ignore
-                const collector = reply.createMessageComponentCollector({ filter, time: 60000 });
-                collector.on('collect', async (buttonInteraction : ButtonInteraction) => {
-                    console.error(error)
+               reply.createMessageComponentCollector({ filter, time: 60000 }).catch(() => {
                     // @ts-ignore
-                    await buttonInteraction.reply({ content: "The developers have been notified of this error.", ephemeral: true });
+                   reply.edit({
+                        components: [new ActionRowBuilder().addComponents(new ButtonBuilder().setStyle(ButtonStyle.Primary).setLabel("Report this error").setCustomId("report_error").setEmoji("📝").setDisabled(true))]
+                    })
+                }).then((collector: { on: (arg0: string, arg1: (buttonInteraction: Discord.ButtonInteraction<Discord.CacheType>) => Promise<void>) => void; }) => {
+                    collector.on('collect', async (buttonInteraction : ButtonInteraction) => {
+                        console.error(error)
+                        // @ts-ignore
+                        await buttonInteraction.reply({ content: "The developers have been notified of this error.", ephemeral: true });
+                    })
                 })
             })
         }

@@ -12,31 +12,23 @@ const builders_1 = require("@discordjs/builders");
 const discord_js_1 = require("discord.js");
 // @ts-ignore
 const google_spreadsheet_1 = require("google-spreadsheet");
-function translate(word, language) {
+function translate(words, word, language) {
     return __awaiter(this, void 0, void 0, function* () {
-        const doc = new google_spreadsheet_1.GoogleSpreadsheet(process.env.CAVEMEN_WORDS_SID);
-        yield doc.useServiceAccountAuth({
-            client_email: process.env.CLIENT_EMAIL,
-            private_key: process.env.PRIVATE_KEY,
-        });
-        yield doc.loadInfo();
-        const sheet = doc.sheetsByTitle['Cave man Gufijskay'];
-        const rows = yield sheet.getRows();
         let found = false;
         let translatedWord = "";
-        yield rows.forEach((row) => {
+        yield words.forEach((row) => {
             // @ts-ignore
             let data = row["_rawData"];
             let searchableData = [data[0], data[1]];
             word = word.replace("ing", "").replace("ed", "");
             // @ts-ignore
-            if (searchableData[0].toString().toLowerCase() === word.toLowerCase() || searchableData[1].toString().toLowerCase() === word.toLowerCase()) {
+            if (searchableData[0].toLowerCase() === word.toLowerCase() || searchableData[1].toLowerCase() === word.toLowerCase()) {
                 found = true;
                 translatedWord = searchableData[(language === "en") ? 1 : 0];
             }
         });
         let toReturn = [translatedWord, found];
-        if (found === false) {
+        if (!found) {
             toReturn[0] = word;
         }
         return toReturn;
@@ -51,6 +43,14 @@ module.exports = {
     execute(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
             yield interaction.deferReply();
+            const doc = new google_spreadsheet_1.GoogleSpreadsheet(process.env.CAVEMEN_WORDS_SID);
+            yield doc.useServiceAccountAuth({
+                client_email: process.env.CLIENT_EMAIL,
+                private_key: process.env.PRIVATE_KEY,
+            });
+            yield doc.loadInfo();
+            const sheet = doc.sheetsByTitle['Dictionary'];
+            const rows = yield sheet.getRows();
             // @ts-ignore
             const subcommand = interaction.options.getSubcommand();
             // @ts-ignore
@@ -58,7 +58,6 @@ module.exports = {
             const language = subcommand === 'english' ? 'gufijskay' : 'en';
             let gufijskayPronouns = ["ja jestem", "ty jesteš", "on jest", "ona jest", "ono jest", "my jestemo", "ony jestu"];
             let englishPronouns = ["i am", "you are", "he is", "she is", "it is", "we are", "they are"];
-            // check to see if there's a period or any other sign of punctuation at the end of the word
             let punctuation = text.slice(-1);
             let punctuationFound = false;
             if (punctuation === "." || punctuation === "?" || punctuation === "!") {
@@ -92,12 +91,12 @@ module.exports = {
                     continue;
                 }
                 if (word.includes("-")) {
-                    yield translate(word.replace("-", " "), language).then((translatedWord) => {
+                    yield translate(rows, word.replace("-", " "), language).then((translatedWord) => {
                         translatedWords.push(translatedWord);
                     });
                     continue;
                 }
-                const translatedWord = yield translate(word, language);
+                const translatedWord = yield translate(rows, word, language);
                 translatedWords.push(translatedWord);
             }
             // make a sentance that is the translated words seperated by spaces and add a period at the end if there isn't one already also make the first letter uppercase abd the rest lowercase

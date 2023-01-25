@@ -26,7 +26,7 @@ module.exports = {
                 private_key: process.env.PRIVATE_KEY,
             });
             yield doc.loadInfo();
-            const sheet = doc.sheetsByTitle["Cave man Gufijskay"];
+            const sheet = doc.sheetsByTitle["Dictionary"];
             const rows = yield sheet.getRows();
             let results = [];
             yield rows.forEach((row) => {
